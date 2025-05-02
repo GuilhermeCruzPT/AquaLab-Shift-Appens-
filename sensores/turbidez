@@ -1,0 +1,34 @@
+int sensorPin = A3;
+int leitura_turbidez; //armazena valor da leitura do sensor
+
+void setup() {
+  // put your setup code here, to run once:
+  Serial.begin(9600);
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+
+  //Leitura do sensor
+  leitura_turbidez = analogRead(sensorPin);
+  Serial.print("Valor lido:");
+  Serial.println(leitura_turbidez);
+  delay(2000);
+
+  Serial.print("Turbidez:");
+  if(leitura_turbidez > 700) {  //Se o valor da leitura > 700
+    Serial.println("LIMPA");    //A água está limpa
+  }
+
+  if ((leitura_turbidez > 600) && (leitura_turbidez <= 700)) {  // 600 < Leitura <=700
+    Serial.println("MEDIA");                  //Imprime no monitor serial que a água está um pouco turva
+  }
+
+  if (leitura_turbidez < 600) {           //Leitura < 600
+    Serial.println("TURVA");              //a água está turva
+  }
+
+  Serial.println();
+
+
+}
