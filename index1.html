@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AquaLab Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 2rem;
+      background-color: #f0f0f0;
+    }
+    .sensor {
+      background: white;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+      max-width: 400px;
+    }
+    .label {
+      font-weight: bold;
+    }
+    canvas {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+      margin-bottom: 2rem;
+      padding: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>🌊 AquaLab - Real-Time Sensor Data</h1>
+  <div class="sensor"><span class="label">Air Temp:</span> <span id="tempAmb">-</span> °C</div>
+  <div class="sensor"><span class="label">Water Temp:</span> <span id="tempAgua">-</span> °C</div>
+  <div class="sensor"><span class="label">Humidity:</span> <span id="humidade">-</span> %</div>
+  <div class="sensor"><span class="label">pH:</span> <span id="ph">-</span></div>
+  <div class="sensor"><span class="label">Turbidity:</span> <span id="turbidez">-</span></div>
+  <div class="sensor"><span class="label">Conductivity:</span> <span id="eletro">-</span> µS/cm</div>
+  <div class="sensor"><span class="label">WQI:</span> <span id="wqi">-</span> </div>
+
+  <h2>📊 Real-Time Charts</h2>
+  <canvas id="airTempChart" width="400" height="150"></canvas>
+  <canvas id="waterTempChart" width="400" height="150"></canvas>
+  <canvas id="hummidityChart" width="400" height="150"></canvas>
+  <canvas id="phChart" width="400" height="150"></canvas>
+  <canvas id="conductivityChart" width="400" height="150"></canvas>
+
+  <script>
+    const airTempCtx = document.getElementById('airTempChart').getContext('2d');
+    const waterTempCtx = document.getElementById('waterTempChart').getContext('2d');
+    const hummidityCtx = document.getElementById('hummidityChart').getContext('2d');
+    const phCtx = document.getElementById('phChart').getContext('2d');
+    const conductivityCtx = document.getElementById('conductivityChart').getContext('2d');
+
+    const airTempData = {
+      labels: [],
+      datasets: [{
+        label: 'Air Temp (°C)',
+        data: [],
+        borderColor: 'rgba(255, 99, 132, 1)',
+        borderWidth: 2,
+        fill: false,
+        tension: 0.3
+      }]
+    };
+
+    const waterTempData = {
+      labels: [],
+      datasets: [{
+        label: 'Water Temp (°C)',
+        data: [],
+        borderColor: 'rgba(54, 162, 235, 1)',
+        borderWidth: 2,
+        fill: false,
+        tension: 0.3
+      }]
+    };
+
+    const humidityData = {
+      labels: [],
+      datasets: [{
+        label: 'Humidity (%)',
+        data: [],
+        borderColor: 'rgba(75, 192, 192, 1)',
+        borderWidth: 2,
+        fill: false,
+        tension: 0.3
+      }]
+    };
+
+    const phData = {
+      labels: [],
+      datasets: [{
+        label: 'pH',
+        data: [],
+        borderColor: 'rgba(153, 102, 255, 1)',
+        borderWidth: 2,
+        fill: false,
+        tension: 0.3
+      }]
+    };
+
+    const conductivityData = {
+      labels: [],
+      datasets: [{
+        label: 'Conductivity (µS/cm)',
+        data: [],
+        borderColor: 'rgba(255, 206, 86, 1)',
+        borderWidth: 2,
+        fill: false,
+        tension: 0.3
+      }]
+    };
+
+    const airTempChart = new Chart(airTempCtx, {
+      type: 'line',
+      data: airTempData,
+      options: {
+        animation: false,
+        scales: {
+          x: { display: false },
+          y: { beginAtZero: true, suggestedMax: 40 }
+        }
+      }
+    });
+
+    const waterTempChart = new Chart(waterTempCtx, {
+      type: 'line',
+      data: waterTempData,
+      options: {
+        animation: false,
+        scales: {
+          x: { display: false },
+          y: { beginAtZero: true, suggestedMax: 40 }
+        }
+      }
+    });
+
+    const humidityChart = new Chart(hummidityCtx, {
+      type: 'line',
+      data: humidityData,
+      options: {
+        animation: false,
+        scales: {
+          x: { display: false },
+          y: { beginAtZero: true, suggestedMax: 100 }
+        }
+      }
+    });
+
+    const phChart = new Chart(phCtx, {
+      type: 'line',
+      data: phData,
+      options: {
+        animation: false,
+        scales: {
+          x: { display: false },
+          y: { beginAtZero: true, suggestedMax: 14 }
+        }
+      }
+    });
+
+
+    const conductivityChart = new Chart(conductivityCtx, {
+      type: 'line',
+      data: conductivityData,
+      options: {
+        animation: false,
+        scales: {
+          x: { display: false },
+          y: { beginAtZero: true, suggestedMax: 5 }
+        }
+      }
+    });
+
+    function addData(chart, value) {
+      /*if (chart.data.labels.length > 100) {
+        chart.data.labels.shift();
+        chart.data.datasets[0].data.shift();
+      }*/
+      chart.data.labels.push('');
+      chart.data.datasets[0].data.push(parseFloat(value));
+      chart.update();
+    }
+
+    const ws = new WebSocket("ws://localhost:8000/ws");
+
+    ws.onmessage = function(event) {
+      const line = event.data;
+
+      if (line.startsWith("A:")) {
+        const val = line.slice(2);
+        document.getElementById("tempAmb").textContent = val;
+        addData(airTempChart, val);
+      } else if (line.startsWith("W:")) {
+        const val = line.slice(2);
+        document.getElementById("tempAgua").textContent = val;
+        addData(waterTempChart, val);
+      } else if (line.startsWith("H:")) {
+        const val = line.slice(2);
+        document.getElementById("humidade").textContent = val;
+        addData(humidityChart, val);
+      } else if (line.startsWith("pH:")) {
+        const val = (line.slice(3)/2).toFixed(2);
+        document.getElementById("ph").textContent = val;
+        addData(phChart, val);
+      } else if (line.startsWith("T:")) {
+        document.getElementById("turbidez").textContent = line.slice(2);
+      } else if (line.startsWith("E:")) {
+        const val = line.slice(2);
+        document.getElementById("eletro").textContent = val;
+        addData(conductivityChart, val);
+      } else if (line.startsWith("WQI:")) {
+        const val = line.slice(4);
+        document.getElementById("wqi").textContent = val;
+      }
+    };
+
+    ws.onclose = () => {
+      console.log("WebSocket closed");
+    };
+    ws.onerror = (err) => {
+      console.error("WebSocket error:", err);
+    };
+  </script>
+</body>
+</html>
