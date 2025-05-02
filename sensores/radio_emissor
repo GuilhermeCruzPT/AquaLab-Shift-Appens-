@@ -1,0 +1,107 @@
+#include <RH_ASK.h>
+#include <SPI.h>
+#include <DHT.h>
+#define DHTPIN 2     // what pin we're connected to
+#define DHTTYPE DHT22   // DHT 22  (AM2302)
+
+DHT dht(DHTPIN, DHTTYPE); // Initialize DHT sensor for normal 16mhz Arduino
+RH_ASK driver;
+int sensorPin = A3;
+
+//STRUCT que tem de estar nos dois arduinos (emissor e recetor)
+struct SensorData {
+  float temp_agua;
+  float temp_amb;
+  float humidade;
+  float ph;
+  float eletro;
+  char turbidez[7];
+};
+SensorData dados;
+float hum;
+float temp_amb;
+
+void setup() {
+  // put your setup code here, to run once
+
+  //Verifica se houve erro ao iniciar o recetor
+  Serial.begin(9600);
+  if (!driver.init()) {
+    Serial.println("Falha ao iniciar o receptor");
+  }
+  dht.begin();
+  
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+
+  
+  //Dados fixos
+  dados.temp_agua = 22.5;
+  //dados.temp_amb = 26.5;
+  //dados.humidade = 68.2;
+  dados.ph = 6.9;           //PARA TIRAR
+  dados.eletro = 650;       //PARA TIRAR
+
+  //Dados dinâmicos
+  //temp_agua
+  //dados.temp_agua = TODO
+
+  //humidade
+   hum = dht.readHumidity();
+   temp_amb = dht.readTemperature();
+  //dados.humidade = hum;
+  Serial.println(hum);
+  Serial.println(temp_amb);
+  delay(1000);
+  if (isnan(hum)) {
+  Serial.println("Falha ao ler a humidade do sensor DHT!");
+  dados.humidade = -1.0; // ou qualquer valor que indique erro
+} else {
+  dados.humidade = hum;
+    
+
+}
+
+  //temp_amb
+  //float amb = dht.readTemperature();
+  dados.temp_amb = temp_amb;
+  
+
+  //turbidez
+  //int leitura_turbidez = analogRead(sensorPin);
+
+  //strcpy(dados.turbidez, leitura_turbidez);
+  int leitura_turbidez = analogRead(sensorPin);
+  if(leitura_turbidez > 700) {  //Se o valor da leitura > 700
+    Serial.println("LIMPA");    //A água está limpa
+    strcpy(dados.turbidez, "LIMPA");            //a água está LIMPA
+  }
+
+  if ((leitura_turbidez > 600) && (leitura_turbidez <= 700)) {  // 600 < Leitura <=700
+    Serial.println("MEDIA");                  //Imprime no monitor serial que a água está um pouco turva
+    strcpy(dados.turbidez, "MEDIA");            //a água está MEDIA
+  }
+
+  if (leitura_turbidez < 600) {           //Leitura < 600
+    Serial.println("TURVA");  
+    strcpy(dados.turbidez, "TURVA");            //a água está turva
+  }
+
+  //eletro
+  // TODO
+
+  //ph
+  // TODO
+
+  //Envia a struct de dados
+  driver.send((uint8_t*)&dados, sizeof(dados));
+
+  //Espera até que o pacote de dados tenha sido completamente transmitido
+  driver.waitPacketSent();
+  Serial.println("Dados enviados!");
+
+  //Delay
+  delay(3000);
+}
