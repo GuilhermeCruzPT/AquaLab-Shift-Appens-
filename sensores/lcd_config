@@ -1,0 +1,121 @@
+/*
+ * Created by ArduinoGetStarted.com
+ *
+ * This example code is in the public domain
+ *
+ * Tutorial page: https://arduinogetstarted.com/tutorials/arduino-lcd-20x4
+ */
+#include <RH_ASK.h>
+
+#include <LiquidCrystal_I2C.h>
+RH_ASK driver;
+
+
+// ph, eletrocondutividade, turbidez, termometro (ambiente e agua), humidade atm.
+
+struct SensorData {
+  float temp_agua;
+  float temp_amb;
+  float humidade;
+  float ph;
+  float eletro;
+  char turbidez[7];
+};
+
+LiquidCrystal_I2C lcd(0x27, 20, 4); // I2C address 0x27, 20 column and 4 rows
+  SensorData dados;
+
+  uint8_t buffer_dados[sizeof(SensorData)];
+  uint8_t buflen = sizeof(buffer_dados);
+void setup() {
+  Serial.begin(9600);
+  lcd.init();               // initialize the lcd
+  lcd.backlight();
+
+
+
+  
+
+  if (driver.recv(buffer_dados, &buflen)) {
+    memcpy(&dados, buffer_dados, sizeof(SensorData));
+    lcd.clear();
+    //Primeira linha
+    // - Temperatura ambiente
+    //char temp_amb[6];               // formato "12.3\0"
+    //dtostrf(12.3, 4, 1, temp_amb);  // temperatura exemplo: "12.3"
+
+    lcd.setCursor(0, 0);            // primeira linha, coluna 0
+    lcd.print("A:");
+    lcd.print(dados.temp_amb, 1);      // imprime com 1 casa decimal
+
+    // - Temperatura da água
+    //char temp_agua[6];        // formato "12,3\0"
+    //dtostrf(20.6, 4, 1, temp_agua);  // temperatura exemplo: "20.6"
+
+    lcd.setCursor(8, 0);      // primeira linha, coluna 8
+    lcd.print("W:");
+    lcd.print(dados.temp_agua, 1);     // imprime com 1 casa decimal
+
+    // Humidade
+    //char humidade[6];         // formato "12,3\0"
+    //dtostrf(70.8, 4, 1, humidade);  // humidade exemplo: "70.8"
+
+    lcd.setCursor(0, 1);      // segunda linha, coluna 0
+    lcd.print("H:");
+    lcd.print(dados.humidade, 1);      // imprime com 1 casa decimal
+
+    // pH
+    //char pH[6];               // formato "12,3\0"
+    //dtostrf(7.6, 4, 1, pH);   // pH exemplo: "07.6"
+
+    lcd.setCursor(8, 1);      // segunda linha, coluna 8
+    lcd.print("pH:");
+    lcd.print(dados.ph, 1);            // imprime o pH ao lado do label
+
+    // Turbidez
+    //char turbidez[8];         // opcoes: LIMPA, MEDIA, TURVA
+    //strcpy(turbidez, "MEDIA");
+
+    // Preenche até 7 caracteres com espaços
+    //int len = strlen(turbidez);
+    //for (int i = len; i < 7; i++) {
+      //turbidez[i] = ' ';
+    //}
+    //turbidez[7] = '\0';             // termina a string
+
+    lcd.setCursor(0, 2);            // terceira linha
+    lcd.print("T: ");
+    lcd.print(dados.turbidez);
+
+    //eletrocondutividade
+    //char eletro[6];               // formato "12,3\0"
+    //dtostrf(10.9, 4, 1, eletro);      // eletrocondutividade exemplo: "10.9"
+
+    lcd.setCursor(0, 2);          // terceira linha coluna 0
+    lcd.print("E:");
+    lcd.print(dados.eletro);            // imprime o pH ao lado do label
+  }
+}
+
+void loop() {
+  if(driver.recv(buffer_dados, &buflen)){
+    memcpy(&dados, buffer_dados, sizeof(SensorData));
+
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("A:");
+    lcd.print(dados.temp_amb, 1);
+    lcd.print(" W:");
+    lcd.print(dados.temp_agua, 1);
+
+    lcd.setCursor(0, 1);
+    lcd.print("H:");
+    lcd.print(dados.humidade, 1);
+    lcd.print(" pH:");
+    lcd.print(dados.ph, 1);
+
+    lcd.setCursor(0, 2);
+    lcd.print("T:");
+    lcd.print(dados.turbidez);
+    }
+}
