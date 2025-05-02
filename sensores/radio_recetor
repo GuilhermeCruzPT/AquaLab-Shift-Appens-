@@ -1,0 +1,61 @@
+#include <RH_ASK.h>
+#include <SPI.h>
+
+RH_ASK driver;
+
+struct SensorData {
+  float temp_agua;
+  float temp_amb;
+  float humidade;
+  float ph;
+  float eletro;
+  char turbidez[7];
+};
+SensorData dados;
+
+uint8_t buffer_dados[sizeof(SensorData)];
+  uint8_t buflen = sizeof(buffer_dados);
+  
+void setup() {
+  // put your setup code here, to run once:
+  Serial.begin(9600);
+
+  //Verifica se conseguiu inicializar o emissor de dados
+  if (!driver.init()) {
+    Serial.println("Erro ao inicializar o emissor!");
+  }
+    
+  
+  
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+
+ 
+
+
+
+  if (driver.recv(buffer_dados, &buflen)) {
+    memcpy(&dados, buffer_dados, sizeof(SensorData));
+
+    Serial.print("A:");
+    Serial.println(dados.temp_amb);
+
+    Serial.print("W:");
+    Serial.println(dados.temp_agua);
+
+    Serial.print("H:");
+    Serial.println(dados.humidade);
+
+    Serial.print("pH:");
+    Serial.println(dados.ph);
+
+    Serial.print("T:");
+    Serial.println(dados.turbidez);
+
+    Serial.print("E:");
+    Serial.println(dados.eletro);
+  }
+
+}
