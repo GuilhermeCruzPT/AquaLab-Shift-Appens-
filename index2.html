@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AquaLab Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="dashboard.js" defer></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 2rem;
+      background-color: #f0f0f0;
+    }
+    .dashboard {
+        display: flex;
+        align-items: flex-start;
+        gap: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .sensor-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        max-width: 800px;
+        flex: 1;
+    }
+
+    .points-container {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 10px;
+        box-shadow: 0 0 8px rgba(0, 0, 0, 0.15);
+        min-width: 200px;
+        height: fit-content;
+    }
+
+    .points-container h2 {
+        margin-top: 0;
+        margin-bottom: 1rem;
+    }
+
+    #points {
+        font-size: 2rem;
+        font-weight: bold;
+        text-align: center;
+        color: #00796b;
+    }
+
+    .sensor {
+        background: white;
+        padding: 1rem;
+        border-radius: 8px;
+        box-shadow: 0 0 5px rgba(0,0,0,0.1);
+        flex: 1 1 200px;
+    }
+
+    .sensor .label {
+        font-weight: bold;
+    }
+
+    .sensor.wqi {
+        flex: 1 1 100%;
+        font-size: 1.5rem;
+        background-color: #e0f7fa;
+        border: 2px solid #00acc1;
+        text-align: center;
+    }
+    .label {
+      font-weight: bold;
+    }
+    #spendPointsBtn {
+        margin-left: 1rem;
+        padding: 0.3rem 0.6rem;
+        font-size: 0.9rem;
+        border: none;
+        border-radius: 4px;
+        background-color: #ff4d4d;
+        color: white;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+
+    #spendPointsBtn:hover {
+        background-color: #e60000;
+    
+    }
+    canvas {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+      margin-bottom: 2rem;
+      padding: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>🌊 AquaLab - Real-Time Sensor Data</h1>
+  <div class="sensor-container">
+    <div class="sensor"><span class="label">Air Temp:</span> <span id="tempAmb">-</span> °C</div>
+    <div class="sensor"><span class="label">Water Temp:</span> <span id="tempAgua">-</span> °C</div>
+    <div class="sensor"><span class="label">Humidity:</span> <span id="humidade">-</span> %</div>
+    <div class="sensor"><span class="label">pH:</span> <span id="ph">-</span></div>
+    <div class="sensor"><span class="label">Turbidity:</span> <span id="turbidez">-</span></div>
+    <div class="sensor"><span class="label">Conductivity:</span> <span id="eletro">-</span> µS/cm</div>
+    <div class="sensor wqi"><span class="label">WQI:</span> <span id="wqi">-</span></div>
+    <div style="display: flex; justify-content: center; margin-top: 0.5rem; margin-bottom: 1rem;">
+        <button id="downloadBtn" style="padding: 0.5rem 1rem; font-size: 1rem; border: none; border-radius: 5px; background-color: #007bff; color: white; cursor: pointer; transition: background-color 0.3s ease;">
+            📥 Download Data
+        </button>
+    </div>
+  </div>
+  <div class="points-container">
+    <h2>🎯 Points</h2>
+    <div id="points">0</div>
+    <div style="width: 100%; background-color: #ddd; height: 20px; border-radius: 10px; overflow: hidden;">
+        <div id="pointsBar" style="height: 100%; width: 0%; background-color: #4caf50; transition: width 0.3s;"></div>
+    </div>
+    <div style="margin-top: 1rem; font-size: 0.9rem; color: #555; text-align: center;">Spend your points to plant a tree:</div>
+    <div style="display: flex; justify-content: center; margin-top: 1rem;">
+        <button id="spendPointsBtn" style="background-color: #4caf50;">
+            🌳 Spend
+        </button>
+    </div>
+  </div>
+  <h2>📊 Real-Time Charts</h2>
+  <canvas id="airTempChart" width="400" height="150"></canvas>
+  <canvas id="waterTempChart" width="400" height="150"></canvas>
+  <canvas id="hummidityChart" width="400" height="150"></canvas>
+  <canvas id="phChart" width="400" height="150"></canvas>
+  <canvas id="conductivityChart" width="400" height="150"></canvas>
+
+</body>
+</html>
